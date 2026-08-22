@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "purpose": "Original evaluation cases beyond the supplied visible set.",
+  "cases": [
+    {
+      "id": "order-id-whitespace-normalization",
+      "category": "tool-use",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you check order   ord-1007  for me?"
+        }
+      ],
+      "expect": {
+        "must_include": ["shipped", "UPS"],
+        "must_not_include": ["ava.morgan@example.test", "risk"],
+        "tool": "order_lookup",
+        "tool_arguments": {
+          "order_id": "ORD-1007"
+        },
+        "handoff": false
+      }
+    },
+    {
+      "id": "gift-card-not-returnable",
+      "category": "retrieval",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I changed my mind about a gift card I bought. Can I return it for a refund?"
+        }
+      ],
+      "expect": {
+        "must_include_concepts": [
+          "gift cards are not returnable",
+          "change of mind"
+        ],
+        "required_sources": [
+          "10-gift-cards-and-price-adjustments.md"
+        ],
+        "tool": "not_called",
+        "handoff": false
+      }
+    },
+    {
+      "id": "exception-status-handoff",
+      "category": "tool-reliability",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is going on with ORD-1010?"
+        }
+      ],
+      "expect": {
+        "must_include_concepts": [
+          "exception",
+          "human support"
+        ],
+        "must_not_include": [
+          "risk_score",
+          "warehouse"
+        ],
+        "tool": "order_lookup",
+        "tool_arguments": {
+          "order_id": "ORD-1010"
+        },
+        "handoff": true
+      }
+    },
+    {
+      "id": "paraphrased-standard-return",
+      "category": "retrieval",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What's the normal return period if I'm not a member?"
+          
+        }
+      ],
+      "expect": {
+        "must_include": ["30"],
+        "must_not_include": ["60 days"],
+        "required_sources": ["01-returns-policy-current.md"],
+        "forbidden_sources_as_authority": [
+          "02-returns-policy-legacy.md",
+          "14-internal-content-migration-notes.md"
+        ],
+        "tool": "not_called",
+        "handoff": false
+      }
+    },
+    {
+      "id": "order-then-arrival-followup",
+      "category": "conversation",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is ORD-1007?"
+        },
+        {
+          "role": "user",
+          "content": "When will it arrive?"
+        }
+      ],
+      "expect": {
+        "must_include": ["August 22", "2026"],
+        "must_not_include": ["ava.morgan@example.test"],
+        "tool": "order_lookup",
+        "handoff": false
+      }
+    }
+  ]
+}
