@@ -1,8 +1,4 @@
-# Steps: evaluate and submit the agent
 
-Checklist to finish the Aster & Row take-home. Work top to bottom.
-
----
 
 ## A. Before you evaluate
 
