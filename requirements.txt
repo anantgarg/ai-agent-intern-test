@@ -1,0 +1,5 @@
+google-genai
+chromadb
+python-dotenv
+pydantic
+groq
