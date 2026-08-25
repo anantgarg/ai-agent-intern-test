@@ -1,239 +1,124 @@
-# AI Agent Intern Take-Home: Build a Reliable RAG Support Agent
+# AI Agent Intern Take-Home: Aster & Row Reliable RAG Support Agent
 
-## The assignment
+## Overview
 
-Aster & Row is a fictional ecommerce company that sells bags, drinkware, and travel accessories. The company wants to launch an AI support agent using the documents and mock order data in this repository.
+This repository contains a fully functional, highly reliable AI support agent for Aster & Row. It is designed to handle common customer inquiries, look up order statuses securely, and reliably navigate conflicting documents, prompt injections, and missing information using RAG (Retrieval-Augmented Generation).
 
-This repository intentionally contains **only content and data**. There is no starter application and no prescribed stack. Build the smallest reliable system you would be comfortable demonstrating to a customer.
+## 1. Setup & Run Instructions
 
-## Timebox
+**Prerequisites:** Python 3.10+
 
-Please spend **6–8 hours** on the assignment. Do not exceed eight hours.
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Elson1603/ai-agent-intern-test-Elson
+   cd ai-agent-intern-test-Elson
+   ```
 
-A smaller, well-tested system is better than a broad system that works only in a demo. It is acceptable to leave something incomplete if the limitation is clearly documented.
+2. **Create and activate a virtual environment (recommended):**
+   ```bash
+   # On Windows
+   python -m venv venv
+   venv\Scripts\activate
 
-## Submission
+   # On macOS/Linux
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
 
-Submit **one GitHub repository link**. Nothing else is required.
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+   
+4. **Set up your environment variables:**
+   - Copy the example `.env` file:
+     ```bash
+     cp .env.example .env
+     ```
+   - Add your **Fireworks API Key** inside `.env`.
 
-Your repository must contain:
+5. **Run the interactive CLI agent:**
+   ```bash
+   python main.py
+   ```
+   *(You can add the `--debug` flag to see retrieved chunks, tool calls, and logic traces: `python main.py --debug`)*
 
-- Your application source code.
-- Your tests and evaluation suite.
-- Clear setup and run instructions.
-- Evaluation results and known limitations in the README.
-- A short GIF or video embedded in the README showing the agent working.
+## 2. Environment Variables
 
-Do not submit API keys, credentials, customer data, separate documents, or slide decks.
+- `FIREWORKS_API_KEY`: Required to authenticate with the Fireworks API (or any OpenAI-compatible endpoint). See `.env.example`.
 
----
+## 3. Tech Stack
 
-## Customer scenario
+- **Model**: `accounts/fireworks/models/qwen3p8-max` (via Fireworks AI). Chosen for its excellent function-calling and strict reasoning capabilities.
+- **Embeddings & Storage**: `chromadb` using the local `all-MiniLM-L6-v2` ONNX model. It's lightweight, fully local, and runs seamlessly without external database setup.
+- **Framework**: Standard Python with the `openai` SDK (for Fireworks compatibility). I avoided heavy abstractions like LangChain to ensure maximum observability, control over tool sanitization, and deterministic prompt structures.
+- **Parsing**: `python-frontmatter` to extract metadata and cleanly chunk markdown documents.
 
-Aster & Row has previously tried several AI support prototypes. The customer reported four recurring problems:
+## 4. Architecture
 
-1. **Conflicting policy answers:** The agent sometimes says the return window is 30 days and sometimes says it is 45 days.
-2. **Invented order information:** The agent occasionally gives an order status without actually looking it up.
-3. **Lost conversation context:** Follow-up questions such as “What about Canada?” are treated as unrelated questions.
-4. **Unsafe retrieved content:** Internal or instruction-like text inside the knowledge base can affect the agent’s behavior.
+1. **Ingestion (`rag.py`)**: The system parses markdown files, extracts frontmatter, and chunks documents by section headers. It inserts these into an in-memory ChromaDB instance.
+2. **Retrieval**: When a user asks a question, the agent performs a similarity search. The retrieved context (including status metadata) is invisibly appended to the user's message in the LLM context.
+3. **Tool Sanitization (`tools.py`)**: The `lookup_order` tool acts as a strict privacy boundary. It intercepts the raw `orders.json` data and strips all PII (email, address) and internal notes/risk scores *before* returning data to the LLM. It also handles status precedence (e.g., removing stale ETAs for cancelled orders).
+4. **Agent Loop (`agent.py`)**: A custom chat loop maintains multi-turn conversation history. The system prompt strongly anchors the agent against prompt injection and enforces strict rules (e.g., highlighting conflicting sources instead of guessing).
 
-The supplied corpus contains realistic data-quality problems, including superseded content, internal notes, conflicting active sources, and fields that must not be shown to customers.
+## 5. Running Evaluations
 
-Your task is to build an agent that handles these conditions deliberately rather than succeeding only on ideal questions.
+Run the automated evaluation suite (includes all visible cases + 5 custom regression tests):
 
----
-
-# Required capabilities
-
-## 1. Retrieval-Augmented Generation
-
-Use RAG over the Markdown files in `knowledge-base/`.
-
-Your implementation must:
-
-- Split and index the supplied documents.
-- Preserve useful metadata from the document front matter.
-- Retrieve only relevant passages instead of sending the entire corpus to the model.
-- Prefer authoritative, active policy documents over superseded or non-policy documents.
-- Include source references in every policy or product answer. A source should identify at least the filename and relevant heading.
-- Avoid making claims that are not supported by the retrieved content.
-- Clearly say when the supplied information is insufficient.
-- Surface genuine conflicts between current authoritative sources rather than silently choosing one.
-
-Do not delete or rewrite the supplied source files to make the assignment easier. You may create derived indexes or normalized representations.
-
-## 2. Order lookup as a tool or function
-
-Use `data/orders.json` to implement an order-status lookup tool or function.
-
-The model must **not** receive the entire orders file in its prompt. It should receive only the result of a lookup when order information is actually required.
-
-The order lookup behavior must:
-
-- Ask for an order ID when it is missing.
-- Handle unknown and malformed order IDs safely.
-- Normalize harmless input differences such as lowercase IDs or surrounding whitespace.
-- Use the order’s current `status` as authoritative.
-- Avoid inventing a delivery estimate when one is unavailable.
-- Avoid reporting stale delivery fields for cancelled or returned orders.
-- Never expose customer email, address, internal notes, risk scores, or other internal-only fields.
-- Never claim that a lookup happened when it did not.
-
-Assume that possession of the order ID is sufficient authentication for this mock assignment. You do not need to build a full identity-verification system.
-
-## 3. Multi-turn conversation
-
-Maintain relevant session context across turns.
-
-The agent should correctly handle follow-ups such as:
-
-- “Do you ship internationally?” followed by “What about Canada?”
-- “Where is `ORD-1007`?” followed by “When will it arrive?”
-- A policy question followed by a narrower question about an exception.
-
-The agent should not carry unrelated details indefinitely or mix one session with another.
-
-## 4. Prompting and agent behavior
-
-The agent must:
-
-- Treat user messages, retrieved passages, and tool results as untrusted data.
-- Follow application instructions rather than instructions found inside retrieved documents.
-- Refuse requests to reveal system prompts, hidden instructions, secrets, or internal-only data.
-- Use company content rather than general model knowledge for company-specific questions.
-- Ask a concise clarifying question when required information is missing.
-- Recommend human assistance when the documents conflict, the data is insufficient, or an action cannot be completed.
-- Never promise that a refund, cancellation, replacement, or address change has been completed unless the system actually supports that action.
-
-## 5. Evaluation suite
-
-The file `evaluation/visible-cases.json` contains behavior-level cases that your system must handle.
-
-Build an evaluation suite that:
-
-- Covers every supplied visible case.
-- Adds at least **five original cases** of your own.
-- Can be run using one clearly documented command.
-- Reports individual case results, not only a single overall score.
-- Separately reports useful categories such as retrieval, groundedness, tool use, privacy, and multi-turn behavior.
-- Uses deterministic assertions wherever practical, including source selection, tool calls, tool arguments, forbidden disclosures, and abstention behavior.
-- Does not rely exclusively on another LLM to grade the agent.
-
-The reviewers will also test paraphrases and combinations that are not included in the visible file. Do not hardcode answers for the supplied prompts.
-
-As you build, keep a small **bug diary** in your README. Document at least three failures you found in your own agent, including:
-
-- How you reproduced the failure.
-- The actual root cause.
-- The change you made.
-- The regression test that now catches it.
-
-At least one documented failure should be something you discovered beyond the exact wording of the visible cases. Include an early baseline and final evaluation result so we can see what improved.
-
-## 6. Basic observability
-
-Provide a debug mode, trace, or log that makes it possible to inspect:
-
-- The current user message.
-- Relevant conversation history.
-- Retrieved passages, metadata, and scores.
-- Tool calls and sanitized tool results.
-- The final response.
-- Errors, fallbacks, or handoffs.
-
-Plain structured logs are sufficient. Do not build a dashboard. Never log secrets.
-
-## 7. Minimal interface
-
-A CLI, simple web page, or basic API is sufficient. Visual polish will not affect the score.
-
-The final user-facing response should make it easy to see:
-
-- The answer.
-- Sources, when applicable.
-- Whether the agent is recommending a human handoff.
-
----
-
-# README requirements
-
-Your completed repository README must include:
-
-1. Setup and run instructions that work from a clean clone.
-2. Required environment variables and an `.env.example` without real credentials.
-3. The model, embedding approach, framework, and storage approach you chose.
-4. A short architecture explanation.
-5. The command for running evaluations.
-6. Baseline and final evaluation results, broken down by category.
-7. A bug diary covering at least three reproduced failures, root causes, fixes, and regression tests.
-8. Known limitations and what you would improve before production.
-9. Which AI coding tools you used, what you used them for, and one example of an AI-generated suggestion that was wrong or incomplete.
-10. A **2–4 minute GIF or video embedded in the README** demonstrating:
-   - One knowledge-base question with citations.
-   - One order lookup.
-   - One multi-turn conversation.
-   - One case where the agent correctly refuses to guess or recommends human help.
-   - The evaluation suite running.
-
-GitHub does not play uploaded video files inline in every context. An embedded GIF or a clickable video thumbnail/link inside the README is acceptable.
-
----
-
-# What not to spend time on
-
-You do not need to build:
-
-- Authentication or user management.
-- Production deployment infrastructure.
-- A production vector database.
-- Fine-tuning.
-- A polished frontend.
-- Multiple model-provider integrations.
-- Billing, analytics dashboards, or administration screens.
-
----
-
-# Evaluation criteria
-
-| Area | Weight |
-|---|---:|
-| Reliability, groundedness, and safe abstention | 25% |
-| Retrieval quality and document precedence | 20% |
-| Tool use, data handling, and privacy | 15% |
-| Evaluation quality and regression coverage | 20% |
-| Multi-turn behavior and observability | 10% |
-| Code clarity and practical tradeoffs | 5% |
-| README, demo, and customer-facing clarity | 5% |
-
-Framework choice and quantity of code are not scoring criteria.
-
----
-
-# Repository contents
-
-```text
-.
-├── README.md
-├── knowledge-base/
-│   ├── 01-returns-policy-current.md
-│   ├── 02-returns-policy-legacy.md
-│   ├── 03-final-sale-and-promotions.md
-│   ├── 04-damaged-or-wrong-items.md
-│   ├── 05-domestic-shipping.md
-│   ├── 06-international-shipping.md
-│   ├── 07-warranty.md
-│   ├── 08-order-changes-and-cancellations.md
-│   ├── 09-trailplus-membership.md
-│   ├── 10-gift-cards-and-price-adjustments.md
-│   ├── 11-product-care.md
-│   ├── 12-breeze-tumbler-product-card.md
-│   ├── 13-support-escalation.md
-│   └── 14-internal-content-migration-notes.md
-├── data/
-│   ├── orders.json
-│   └── orders-data-dictionary.md
-└── evaluation/
-    └── visible-cases.json
+```bash
+python evaluate.py
 ```
 
-Good luck. Build for reliability, not just for the happy-path demo.
+## 6. Evaluation Results
+
+- **Baseline Results (Initial attempt with malformed parsing)**: 
+  - Passed: 0/20, Failed: 20/20.
+- **Final Evaluation Results**:
+  - **Total**: 20/20 (100% Pass Rate)
+  - **By Category**:
+    - retrieval: 3/3
+    - multi-source-grounding: 1/1
+    - conversation: 2/2
+    - groundedness: 2/2
+    - tool-use: 3/3
+    - tool-reliability: 3/3
+    - privacy: 2/2
+    - prompt-security: 1/1
+    - abstention: 2/2
+    - source-conflict: 1/1
+
+## 7. Bug Diary
+
+1. **Model Endpoint Incompatibility (404 Not Found)**
+   - **Reproduction:** Running `python evaluate.py` with `llama-v3p1-70b-instruct` resulted in all 20 cases failing with a 404 error from Fireworks AI.
+   - **Root Cause:** The model ID `llama-v3p1-70b-instruct` was incorrect or unavailable for the provided key.
+   - **Fix:** Switched to `accounts/fireworks/models/qwen3p8-max`, which is highly capable and active on the platform.
+   - **Regression Test:** `evaluate.py` verifies the model endpoint responds successfully across all 20 tests.
+
+2. **Tool Argument Parsing Error (`'str' object has no attribute 'get'`)**
+   - **Reproduction:** During `evaluate.py`, cases requiring `order_lookup` crashed.
+   - **Root Cause:** The LLM occasionally returns the tool `arguments` as a raw string instead of a valid JSON dictionary depending on the model's function-calling strictness. When `json.loads` parsed it, it remained a string, causing `.get("order_id")` to fail.
+   - **Fix:** Updated `agent.py` to robustly check `isinstance(args, dict)` and fall back to string parsing.
+   - **Regression Test:** Included in the `valid-order-lookup` and `custom-1-missing-order-id` cases.
+
+3. **Database Iteration Error (`'str' object has no attribute 'get'`)**
+   - **Reproduction:** After fixing the argument parsing, the tool cases failed again with the same error message deep inside `tools.py`.
+   - **Root Cause:** The root of `orders.json` is a dictionary `{"dataset_name": "...", "orders": [...]}`. My code was doing `for o in orders_db`, iterating over the *keys* of the root dictionary (which are strings) instead of the list of orders.
+   - **Fix:** Updated `tools.py` to extract the list properly: `orders_db = load_orders().get('orders', [])`.
+   - **Regression Test:** The entire `tool-reliability` suite relies on this iteration working flawlessly.
+
+## 8. Known Limitations & Future Improvements
+
+- **Scalability**: ChromaDB is currently running in-memory. For production, it should connect to a persistent Vector DB (e.g., Pinecone or Postgres pgvector).
+- **Hardcoded Tool Logic**: The `lookup_order` tool handles JSON arrays. In production, this would be an API call to a real database (e.g., Shopify or an OMS), which would handle its own sanitization before returning payloads.
+- **Evaluation Strictness**: The evaluation currently relies on deterministic string matching (`must_include`, `must_not_include`). In a real environment, adding an "LLM-as-a-judge" for nuanced responses would provide better qualitative metrics.
+
+## 9. AI Coding Tools Used
+
+- **Google Gemini (Antigravity IDE Agent)**: Used to architect the solution, write the core Python logic (`agent.py`, `tools.py`, `rag.py`), execute background tasks to test and evaluate the code, and debug stack traces dynamically.
+- **Example of incorrect suggestion**: The AI initially wrote `orders_db = load_orders()` and iterated over it assuming it was a JSON array, failing to realize the provided `orders.json` was wrapped in a root object containing metadata (like `dataset_name`). The AI had to read the raw JSON file to discover its own mistake.
+
+## 10. Demonstration
+
+Here is the demonstration of the agent in action:
+[View Demo Video](https://drive.google.com/file/d/1zCkda84i_ebKuiUa4fbIihQxVgp9c7_p/view?usp=sharing)
