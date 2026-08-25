@@ -1,0 +1,4 @@
+openai
+chromadb
+python-frontmatter
+python-dotenv
