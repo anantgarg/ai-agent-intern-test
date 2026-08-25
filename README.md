@@ -197,7 +197,7 @@ When `DEBUG_LOGGING=true` is set in `.env`, the agent logs structured JSON trace
 
 ## 8. Demo GIF / Video
 
-[![Aster & Row Support Agent Demo](https://img.shields.com/badge/Demo-Watch%20Agent%20in%20Action-blue?style=for-the-badge&logo=youtube)](file:///d:/Projects/ai-agent-intern-test/docs/demo.gif)
+[![Aster & Row Support Agent Demo](https://drive.google.com/file/d/1VhPX26QYaQ0Cihy0uKzD38d5EZDKEKd6/view?usp=sharing)
 
 *(Embedded GIF demonstrating knowledge-base citation, order lookup, multi-turn conversation, human handoff, and test suite execution.)*
 
