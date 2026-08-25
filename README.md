@@ -11,7 +11,7 @@ This repository contains a fully functional, highly reliable AI support agent fo
 1. **Clone the repository:**
    ```bash
    git clone https://github.com/Elson1603/ai-agent-intern-test-Elson
-   cd ai-agent-intern-test
+   cd ai-agent-intern-test-Elson
    ```
 
 2. **Create and activate a virtual environment (recommended):**
