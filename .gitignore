@@ -1,0 +1,12 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+index/faiss.index
+index/documents.json
+index/backend.txt
+*.log
+.DS_Store
+Thumbs.db
