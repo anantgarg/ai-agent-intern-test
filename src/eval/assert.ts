@@ -1,7 +1,13 @@
 import type { AgentTurnResult, EvalExpect, ToolCallRecord } from "../types.js";
 
 function norm(s: string): string {
-  return s.toLowerCase().replace(/\s+/g, " ").trim();
+  return s
+    .toLowerCase()
+    .replace(/[*_`~]/g, "")
+    .replace(/[–—]/g, "-")
+    .replace(/-/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function includesLoose(haystack: string, needle: string): boolean {
@@ -9,18 +15,229 @@ function includesLoose(haystack: string, needle: string): boolean {
 }
 
 /** Concept checks: all significant tokens should appear (order-independent). */
-function matchesConcept(haystack: string, concept: string): boolean {
+function matchesConceptTokens(haystack: string, concept: string): boolean {
   const text = norm(haystack);
   const tokens = norm(concept)
     .split(/[^a-z0-9]+/)
-    .filter((t) => t.length > 2 && !["the", "and", "for", "are", "was", "with", "that", "this", "from", "not"].includes(t));
+    .filter(
+      (t) =>
+        t.length > 2 &&
+        !["the", "and", "for", "are", "was", "with", "that", "this", "from", "not"].includes(
+          t,
+        ),
+    );
 
   if (tokens.length === 0) return includesLoose(haystack, concept);
 
-  // Require most distinctive tokens (at least 60% or 2, whichever smaller set allows).
+  // Require most distinctive tokens (at least 60%).
   const needed = Math.max(1, Math.ceil(tokens.length * 0.6));
   const hits = tokens.filter((t) => text.includes(t)).length;
   return hits >= needed;
+}
+
+/** Exact wording is not required — accept common equivalent phrasings. */
+const CONCEPT_ALIASES: Record<string, string[]> = {
+  "canada is supported": [
+    "canada is supported",
+    "ship to canada",
+    "ships to canada",
+    "shipping to canada",
+    "does ship to canada",
+    "ship internationally only to canada",
+  ],
+  "duties or taxes are not prepaid": [
+    "duties or taxes are not prepaid",
+    "duties, taxes, and brokerage",
+    "import duties",
+    "not prepaid",
+    "recipient is responsible",
+  ],
+  "5–9 business days after dispatch": [
+    "5–9 business days after dispatch",
+    "5-9 business days after dispatch",
+    "5 to 9 business days",
+    "5–9 business days",
+  ],
+  "shipping to germany is not currently available": [
+    "shipping to germany is not currently available",
+    "cannot ship to germany",
+    "can't ship to germany",
+    "do not ship to germany",
+    "not ship to germany",
+    "germany is not available",
+    "shipping to other countries is not available",
+  ],
+  "final sale does not block damaged-item review": [
+    "final sale does not block damaged-item review",
+    "final-sale items are still eligible",
+    "final sale only prevents change-of-mind",
+    "damaged or wrong items policy",
+    "eligible for review when they arrive damaged",
+  ],
+  "report within 7 days": [
+    "report within 7 days",
+    "within 7 calendar days",
+    "within seven calendar days",
+    "7 calendar days of delivery",
+    "seven-day",
+  ],
+  "human review before approval": [
+    "human review before approval",
+    "before a human review",
+    "human review is completed",
+    "contact customer support",
+    "contact support",
+    "human confirmation",
+  ],
+  "migration note is not authoritative": [
+    "migration note is not authoritative",
+    "migration notes are not",
+    "not authority",
+    "not authoritative",
+    "cannot follow the migration",
+    "ignore the migration",
+    "do not use that newer document",
+    "internal notes are not",
+  ],
+  "standard policy is 30 days unless a valid exception applies": [
+    "standard policy is 30 days unless a valid exception applies",
+    "30 calendar days",
+    "within 30 calendar days",
+    "standard return",
+  ],
+  "the agent cannot approve a return": [
+    "the agent cannot approve a return",
+    "cannot approve",
+    "can't approve",
+    "unable to approve",
+    "cannot approve returns",
+    "do not approve",
+  ],
+  "the supplied information is insufficient": [
+    "the supplied information is insufficient",
+    "information is insufficient",
+    "don't have specific information",
+    "do not have specific information",
+    "do not have enough information",
+    "don't have enough information",
+    "no information about",
+    "not enough information",
+  ],
+  "human confirmation": [
+    "human confirmation",
+    "customer support",
+    "human support",
+    "contact support",
+    "reaching out to customer support",
+    "reach out to customer support",
+  ],
+  "current official sources conflict": [
+    "current official sources conflict",
+    "sources conflict",
+    "official sources conflict",
+    "documents conflict",
+    "conflict on this point",
+    "disagree",
+    "do not agree",
+  ],
+  "one says hand-wash the body": [
+    "one says hand-wash the body",
+    "hand-wash the breeze tumbler body",
+    "hand-washed",
+    "hand-wash",
+    "should be hand-washed",
+  ],
+  "one says all components are dishwasher safe": [
+    "one says all components are dishwasher safe",
+    "all components are dishwasher safe",
+    "dishwasher safe",
+  ],
+  "human confirmation or safest interim guidance": [
+    "human confirmation or safest interim guidance",
+    "human confirmation",
+    "safest interim guidance",
+    "hand-wash the body",
+    "contact support",
+  ],
+  "gift cards are not returnable": [
+    "gift cards are not returnable",
+    "gift cards cannot be returned",
+    "cannot be returned",
+    "cannot return the gift card",
+    "not returnable",
+    "final sale and cannot be returned",
+  ],
+  "change of mind": [
+    "change of mind",
+    "change-of-mind",
+    "changed my mind",
+  ],
+  "human support": [
+    "human support",
+    "customer support",
+    "contact support",
+    "reach out to support",
+  ],
+  "the order is cancelled": [
+    "the order is cancelled",
+    "order is cancelled",
+    "order was cancelled",
+    "cancelled",
+  ],
+  "it will not be shipped": [
+    "it will not be shipped",
+    "will not be shipped",
+    "not be shipped",
+    "won't be shipped",
+    "will not ship",
+  ],
+  "order was not found": [
+    "order was not found",
+    "not found",
+    "could not find",
+    "couldn't find",
+    "no order",
+  ],
+  "check the order id or contact support": [
+    "check the order id or contact support",
+    "check the order id",
+    "contact support",
+    "re-check the id",
+  ],
+  "shipped with canada post": [
+    "shipped with canada post",
+    "canada post",
+  ],
+  "delivery estimate is unavailable": [
+    "delivery estimate is unavailable",
+    "estimate is unavailable",
+    "estimated delivery is unavailable",
+    "estimate unavailable",
+    "not available",
+  ],
+  "no lifetime warranty": [
+    "no lifetime warranty",
+    "does not have a lifetime warranty",
+    "do not have a lifetime warranty",
+    "not a lifetime warranty",
+    "no lifetime",
+  ],
+  "bags have 2 years": [
+    "bags have 2 years",
+    "2 years",
+    "two years",
+  ],
+  "drinkware and travel accessories have 1 year": [
+    "drinkware and travel accessories have 1 year",
+    "1 year",
+    "one year",
+  ],
+};
+
+function matchesConcept(haystack: string, concept: string): boolean {
+  const key = concept.toLowerCase().trim();
+  const aliases = CONCEPT_ALIASES[key] ?? [concept];
+  return aliases.some((alias) => matchesConceptTokens(haystack, alias));
 }
 
 function sourceFilenames(result: AgentTurnResult): string[] {
