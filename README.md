@@ -130,13 +130,6 @@ Regression: `canada-multiturn`, `order-then-arrival-followup`.
 
 ---
 
-## AI tools
-
-Used **Cursor** for scaffolding, retrieval/tool loop, eval harness, and README.
-
-**Incomplete AI suggestion:** “Just BM25 + tell the model to ignore old docs.” Not enough — ranking needed heading boost and diversity.
-
----
 
 ## Demo
 
