@@ -1,0 +1,6 @@
+venv/
+.env
+chroma_db/
+__pycache__/
+.pytest_cache/
+traces.json
