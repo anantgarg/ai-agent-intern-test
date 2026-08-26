@@ -133,8 +133,4 @@ Regression: `canada-multiturn`, `order-then-arrival-followup`.
 
 ## Demo
 
-Add your 2–4 min GIF/video here (policy + citations, order lookup, multi-turn, handoff, `npm run eval`).
-
-```markdown
-![demo](./demo.gif)
-```
+Upoloaded on: https://youtu.be/Mvs4pcjJiqA
