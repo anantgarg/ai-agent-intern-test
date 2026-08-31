@@ -1,0 +1,182 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+.header {
+  background: #1f2937;
+  color: white;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.header p {
+  margin: 5px 0 0;
+  color: #cbd5e1;
+}
+
+.clear-button {
+  background: white;
+  color: #1f2937;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.chat-container {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 0 20px;
+}
+
+.welcome {
+  text-align: center;
+  padding: 80px 20px;
+  color: #64748b;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.message-row {
+  display: flex;
+}
+
+.user-row {
+  justify-content: flex-end;
+}
+
+.agent-row {
+  justify-content: flex-start;
+}
+
+.message {
+  max-width: 75%;
+  padding: 16px;
+  border-radius: 14px;
+  line-height: 1.6;
+}
+
+.user-message {
+  background: #2563eb;
+  color: white;
+}
+
+.agent-message {
+  background: white;
+  color: #1f2937;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.message-label {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.message-content {
+  white-space: pre-wrap;
+}
+
+.sources {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.source {
+  margin-top: 5px;
+}
+
+.handoff {
+  margin-top: 12px;
+  padding: 8px;
+  background: #fff3cd;
+  border-radius: 6px;
+  color: #856404;
+  font-size: 13px;
+}
+
+.typing {
+  color: #64748b;
+  font-style: italic;
+}
+
+.error {
+  margin: 15px 0;
+  padding: 12px;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 8px;
+}
+
+.input-area {
+  display: flex;
+  gap: 10px;
+  margin-top: 25px;
+  position: sticky;
+  bottom: 15px;
+}
+
+.input-area input {
+  flex: 1;
+  padding: 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 16px;
+  outline: none;
+}
+
+.input-area input:focus {
+  border-color: #2563eb;
+}
+
+.input-area button {
+  padding: 14px 24px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.input-area button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .header {
+    padding: 15px 20px;
+  }
+
+  .chat-container {
+    margin: 15px auto;
+  }
+
+  .message {
+    max-width: 90%;
+  }
+}
