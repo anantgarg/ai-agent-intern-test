@@ -1,0 +1,70 @@
+[
+  {
+    "id": "standard-return-window",
+    "category": "retrieval",
+    "passed": true,
+    "failures": [],
+    "response": "Regular customers can request a return for an unused backpack within **30 calendar days of delivery**\u301001-returns-policy-current.md\u3011."
+  },
+  {
+    "id": "trailplus-return-window",
+    "category": "retrieval",
+    "passed": false,
+    "failures": [
+      "missing required phrase: '45 calendar days'"
+    ],
+    "response": "Because your TrailPlus membership was active at the time of purchase, you are entitled to a **45\u2011calendar\u2011day return window starting from the delivery date** for eligible items. Final\u2011sale items, items that are not in their original condition, and items that violate warranty rules cannot be returned. [Source: 09-trailplus-membership.md]"
+  },
+  {
+    "id": "final-sale-damaged-exception",
+    "category": "multi-source-grounding",
+    "passed": false,
+    "failures": [
+      "missing required source citation: 03-final-sale-and-promotions.md",
+      "missing required source citation: 04-damaged-or-wrong-items.md"
+    ],
+    "response": "I\u2019m sorry to hear that the bag arrived with a broken zipper.  \nBecause the item is a final\u2011sale product, you can\u2019t return or exchange it for a fit, color, or change\u2011of\u2011mind reason. However, the final\u2011sale restriction does **not** remove your right to report a damaged or defective item. According to the Damaged or Wrong Items policy, you can still have the product reviewed and receive a resolution that may include a replacement (if in stock) or a refund. No return shipping fee will be charged if the damage is confirmed.  \n\nIf you\u2019d like to proceed, you can file a damage claim and a member of the support team will review the case and determine the best resolution."
+  },
+  {
+    "id": "canada-multiturn",
+    "category": "conversation",
+    "passed": true,
+    "failures": [],
+    "response": "Yes, we ship to Canada.  \n- **Processing time:** Orders typically take 1\u20132 business days to be processed before they are dispatched. [Source: 05\u2011domestic\u2011shipping.md | Section: Processing time]  \n- **Delivery estimate:** Once dispatched, Canadian orders usually arrive within **5\u20139 business days**. Customs processing or carrier delays can extend this period. [Source: 06\u2011international\u2011shipping.md | Section: Canada delivery estimate]  \n- **Import charges:** Import duties, taxes and brokerage fees are not prepaid by Aster & Row; the recipient will be responsible for any charges assessed by Canadian authorities or the carrier. [Source: 06\u2011international\u2011shipping.md | Section: Duties and taxes]"
+  },
+  {
+    "id": "unsupported-country",
+    "category": "groundedness",
+    "passed": true,
+    "failures": [],
+    "response": "No, Aster\u202f&\u202fRow does not ship internationally outside of Canada at this time. The current international shipping policy states that the only supported destination is Canada, and shipping to Germany is not available. [Source: 06\u2011international\u2011shipping.md]"
+  },
+  {
+    "id": "valid-order-lookup",
+    "category": "tool-use",
+    "passed": true,
+    "failures": [],
+    "response": "Your order\u202fORD-1007 was shipped on\u202f2026\u201108\u201114\u202fwith UPS (tracking number\u202f1ZAR100700000007).  \nIt is currently in transit and is estimated to arrive on\u202f2026\u201108\u201122."
+  },
+  {
+    "id": "missing-order-id",
+    "category": "tool-use",
+    "passed": true,
+    "failures": [],
+    "response": "I\u2019m happy to check the status of your order, but I\u2019ll need the order ID first. Could you please provide your order ID?"
+  },
+  {
+    "id": "cancelled-order-stale-eta",
+    "category": "tool-reliability",
+    "passed": true,
+    "failures": [],
+    "response": "Order **ORD-1004** was cancelled\u202f\u2013\u202fthe order was removed from fulfillment before it could ship, so it will not arrive.  \n\nIf the order had remained active, domestic US shipments would normally take 1\u20132 business days to process and an additional 3\u20135 business days to deliver (after dispatch)\u301005-domestic-shipping.md\u3011. Since this order is cancelled, those estimates do not apply."
+  },
+  {
+    "id": "unknown-order",
+    "category": "tool-reliability",
+    "passed": true,
+    "failures": [],
+    "response": "I couldn\u2019t locate an order with the ID \u201cORD-9999\u201d.  \nPlease double\u2011check the ID you entered. If the problem persists, I recommend contacting human support."
+  }
+]
