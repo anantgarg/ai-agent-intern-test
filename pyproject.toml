@@ -1,0 +1,11 @@
+[project]
+name = "ai-agent-intern-test"
+version = "0.1.0"
+description = "Reliable RAG support agent for the Aster & Row take-home."
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+

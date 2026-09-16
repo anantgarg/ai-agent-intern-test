@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "lowercase-spaced-order-id",
+      "category": "tool-use",
+      "messages": [{"role": "user", "content": "where is  ord 1007  ?"}],
+      "expect": {
+        "must_include": ["shipped", "UPS", "August 22, 2026"],
+        "tool": "order_lookup",
+        "tool_arguments": {"order_id": "ORD-1007"},
+        "handoff": false
+      }
+    },
+    {
+      "id": "order-followup-context",
+      "category": "conversation",
+      "messages": [
+        {"role": "user", "content": "Where is ORD-1011?"},
+        {"role": "user", "content": "When will it arrive?"}
+      ],
+      "expect": {
+        "must_include_concepts": ["shipped with Canada Post", "delivery estimate is unavailable"],
+        "tool": "order_lookup",
+        "tool_arguments": {"order_id": "ORD-1011"},
+        "handoff": false
+      }
+    },
+    {
+      "id": "exception-order-handoff",
+      "category": "tool-reliability",
+      "messages": [{"role": "user", "content": "What is happening with ORD-1010?"}],
+      "expect": {
+        "must_include_concepts": ["shipment exception", "support review"],
+        "tool": "order_lookup",
+        "handoff": true
+      }
+    },
+    {
+      "id": "gift-card-final-sale",
+      "category": "retrieval",
+      "messages": [{"role": "user", "content": "Can I return a gift card?"}],
+      "expect": {
+        "must_include_concepts": ["gift cards", "final sale", "cannot be returned"],
+        "required_sources": ["10-gift-cards-and-price-adjustments.md"],
+        "tool": "not_called",
+        "handoff": false
+      }
+    },
+    {
+      "id": "price-adjustment-action-limit",
+      "category": "groundedness",
+      "messages": [{"role": "user", "content": "The price dropped after I bought a bag. Can you issue the adjustment now?"}],
+      "expect": {
+        "must_include_concepts": ["7 calendar days", "human support specialist", "must not promise"],
+        "required_sources": ["10-gift-cards-and-price-adjustments.md"],
+        "tool": "not_called",
+        "handoff": true
+      }
+    }
+  ]
+}
+
