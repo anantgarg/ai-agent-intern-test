@@ -1,0 +1,2 @@
+# Stdlib-only runtime. No third-party installs required.
+# Python >= 3.10 recommended (tested on 3.12).
